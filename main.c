@@ -1,12 +1,16 @@
 #include "monty.h"
 bus_t bus = {NULL, NULL, NULL, 0};
-
+/**
+* main - monty code interpreter
+* @argc: number of arguments
+* @argv: monty file location
+* Return: 0 on success
+*/
 int main(int argc, char *argv[])
 {
     char *content;
     FILE *file;
-    size_t size = 0;
-    ssize_t read_line = 1;
+    size_t size = 1024;
     stack_t *stack = NULL;
     unsigned int counter = 0;
 
@@ -22,29 +26,28 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Error: Can't open file %s\n", argv[1]);
         exit(EXIT_FAILURE);
     }
-    while (read_line > 0)
+    content = (char *)malloc(size * sizeof(char));
+    if (!content)
     {
-        content = NULL;
-        // Use getline to read a line from the file into the content buffer
-        read_line = getline(&content, &size, file);
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
 
-        // Remove the newline character from the end of the line if it exists
-        if (read_line > 0 && content[read_line - 1] == '\n')
+    while (fgets(content, size, file) != NULL)
+    {
+        size_t len = strlen(content);
+        if (len > 0 && content[len - 1] == '\n')
         {
-            content[read_line - 1] = '\0';
-            read_line--; // Update the length after removing newline
+            content[len - 1] = '\0';
         }
 
         bus.content = content;
         counter++;
-        if (read_line > 0)
-        {
-            execute(content, &stack, counter, file);
-        }
-        free(content);
+        execute(content, &stack, counter, file);
     }
+
+    free(content);
     free_stack(stack);
     fclose(file);
     return 0;
 }
-
